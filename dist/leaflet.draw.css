@@ -234,7 +234,7 @@
 	position: absolute;
 	visibility: hidden;
 	white-space: nowrap;
-	z-index: 6;
+	z-index: 6000;
 }
 
 .leaflet-draw-tooltip:before {
