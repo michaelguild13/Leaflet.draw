@@ -2116,7 +2116,7 @@ L.GeometryUtil = L.extend(L.GeometryUtil || {}, {
 			if (distance > 1760) {
 				distanceStr = (distance / 1760).toFixed(2) + ' miles';
 			} else {
-				distanceStr = Math.ceil(distance) + ' yd';
+				distanceStr = Math.ceil(distance * 3) + ' ft';
 			}
 		}
 
