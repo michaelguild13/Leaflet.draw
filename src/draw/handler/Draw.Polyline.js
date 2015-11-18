@@ -145,6 +145,9 @@ L.Draw.Polyline = L.Draw.Feature.extend({
 	},
 
 	addVertex: function (latlng) {
+		if (this._currentLatLng) {
+		    this._currentLatLng = latlng;
+		}
 		var markersLength = this._markers.length;
 
 		if (markersLength > 0 && !this.options.allowIntersection && this._poly.newLatLngIntersects(latlng)) {
