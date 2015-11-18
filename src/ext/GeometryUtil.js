@@ -36,7 +36,7 @@ L.GeometryUtil = L.extend(L.GeometryUtil || {}, {
 			} else if (area >= 4840) {//48040 square yards in 1 acre
 				areaStr = (area / 4840).toFixed(2) + ' acres';
 			} else {
-				areaStr = Math.ceil(area) + ' yd&sup2;';
+				areaStr = Math.ceil(area * 9) + ' ft&sup2;';
 			}
 		}
 
@@ -59,7 +59,7 @@ L.GeometryUtil = L.extend(L.GeometryUtil || {}, {
 			if (distance > 1760) {
 				distanceStr = (distance / 1760).toFixed(2) + ' miles';
 			} else {
-				distanceStr = Math.ceil(distance) + ' yd';
+				distanceStr = Math.ceil(distance * 3) + ' ft';
 			}
 		}
 
