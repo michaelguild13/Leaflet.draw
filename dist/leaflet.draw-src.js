@@ -1233,6 +1233,8 @@ L.Edit.Poly = L.Handler.extend({
 		if (this._poly._map) {
 
 			this._map = this._poly._map; // Set map
+
+			this._map.on('mousemove', this._onMouseMove, this);
 			//Terrible hack to un-nest nested polygons. See https://github.com/Leaflet/Leaflet/issues/2618
 			if (!this._poly._flat(this._poly._latlngs)) {
 				this._poly._latlngs = this._poly._latlngs[0];
@@ -1306,6 +1308,7 @@ L.Edit.Poly = L.Handler.extend({
 		marker._index = index;
 
 		marker
+			.on('dragstart', this._onMarkerDragStart, this)
 			.on('drag', this._onMarkerDrag, this)
 			.on('dragend', this._fireEdit, this)
 			.on('touchmove', this._onTouchMove, this)
@@ -1325,6 +1328,7 @@ L.Edit.Poly = L.Handler.extend({
 		this._updateIndexes(i, -1);
 
 		marker
+			.off('dragstart', this._onMarkerDragStart, this)
 			.off('drag', this._onMarkerDrag, this)
 			.off('dragend', this._fireEdit, this)
 			.off('touchmove', this._onMarkerDrag, this)
@@ -1332,9 +1336,82 @@ L.Edit.Poly = L.Handler.extend({
 			.off('click', this._onMarkerClick, this);
 	},
 
-	_fireEdit: function () {
+	_fireEdit: function (e) {
 		this._poly.edited = true;
-		this._poly.fire('edit');
+		if (this._checkSelfIntersection()) {
+			if (this._tooltip) {
+				this._hideErrorTooltip();
+			}
+			this._tooltip = new L.Tooltip(this._map);
+			this._showErrorTooltip();
+			this._revertChange(e);
+		} else {
+			this._poly.fire('edit');
+		}
+	},
+
+	_checkSelfIntersection: function () {
+		this._poly._originalPoints = [];
+
+		for (var i = 0, len = this._poly._latlngs.length; i < len; i++) {
+			this._poly._originalPoints[i] = this._map.latLngToLayerPoint(this._poly._latlngs[i]);
+		}
+		return this._poly.intersects();
+	},
+
+	_showErrorTooltip: function () {
+		this._savedColor = this._poly.options.color;
+		this._errorShown = true;
+
+		// Update tooltip
+		this._tooltip
+			.showAsError()
+			.updateContent({ text: L.drawLocal.draw.handlers.polyline.error });
+
+		// Update shape
+		this._poly.setStyle({ color: '#b00b00' });
+
+		// Hide the error after 2 seconds
+		this._clearHideErrorTimeout();
+		this._hideErrorTimeout = setTimeout(L.Util.bind(this._hideErrorTooltip, this), 2500);
+	},
+
+	_hideErrorTooltip: function () {
+		this._errorShown = false;
+
+		this._clearHideErrorTimeout();
+
+		// Revert tooltip
+		this._tooltip
+			.removeError();
+		this._tooltip.dispose();
+		this._tooltip = undefined;
+
+		// Revert shape
+		this._poly.setStyle({ color: this._savedColor });
+	},
+
+	_clearHideErrorTimeout: function () {
+		if (this._hideErrorTimeout) {
+			clearTimeout(this._hideErrorTimeout);
+			this._hideErrorTimeout = null;
+		}
+	},
+
+	_revertChange: function () {
+		this._poly._setLatLngs(this._originalLatLngs);
+		this._poly.redraw();
+		this.updateMarkers();
+	},
+
+	_onMouseMove: function (e) {
+		if (this._tooltip) {
+			this._tooltip.updatePosition(e.latlng);
+		}
+	},
+
+	_onMarkerDragStart: function () {
+		this._originalLatLngs = L.LatLngUtil.cloneLatLngs(this._poly.getLatLngs());
 	},
 
 	_onMarkerDrag: function (e) {
@@ -1457,8 +1534,11 @@ L.Edit.Poly = L.Handler.extend({
 			marker.off('dragend', onDragEnd, this);
 			marker.off('touchmove', onDragStart, this);
 
-			this._createMiddleMarker(marker1, marker);
-			this._createMiddleMarker(marker, marker2);
+			var newLatLng = marker.getLatLng();
+            if (!this._positionChanged(latlng, newLatLng)) {
+				this._createMiddleMarker(marker1, marker);
+				this._createMiddleMarker(marker, marker2);
+			}
 		};
 
 		onClick = function () {
@@ -1474,6 +1554,10 @@ L.Edit.Poly = L.Handler.extend({
 			.on('touchmove', onDragStart, this);
 
 		this._markerGroup.addLayer(marker);
+	},
+
+	_positionChanged: function (oldLatLng, newLatLng) {
+		return (oldLatLng.lat === newLatLng.lat) && (oldLatLng.lng === newLatLng.lng);
 	},
 
 	_updatePrevNext: function (marker1, marker2) {
