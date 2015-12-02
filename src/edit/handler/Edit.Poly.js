@@ -151,6 +151,7 @@ L.Edit.Poly = L.Handler.extend({
 			this._showErrorTooltip();
 			this._revertChange(e);
 		} else {
+            this.updateMarkers();
 			this._poly.fire('edit');
 		}
 	},

@@ -1346,6 +1346,7 @@ L.Edit.Poly = L.Handler.extend({
 			this._showErrorTooltip();
 			this._revertChange(e);
 		} else {
+            this.updateMarkers();
 			this._poly.fire('edit');
 		}
 	},
@@ -1535,7 +1536,7 @@ L.Edit.Poly = L.Handler.extend({
 			marker.off('touchmove', onDragStart, this);
 
 			var newLatLng = marker.getLatLng();
-            if (!this._positionChanged(latlng, newLatLng)) {
+			if (!this._positionChanged(latlng, newLatLng)) {
 				this._createMiddleMarker(marker1, marker);
 				this._createMiddleMarker(marker, marker2);
 			}
