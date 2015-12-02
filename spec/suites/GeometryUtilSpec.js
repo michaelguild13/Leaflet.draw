@@ -18,7 +18,7 @@ describe("L.GeometryUtil", function () {
 		});
 
 		it("imperial", function () {
-			expect(L.GeometryUtil.readableDistance(1609.3488537961)).to.eql('1760 yd');
+			expect(L.GeometryUtil.readableDistance(1609.3488537961)).to.eql('5280 ft');
 			expect(L.GeometryUtil.readableDistance(1610.3488537961)).to.eql('1.00 miles');
 		});
 	});
