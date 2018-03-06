@@ -246,6 +246,9 @@ L.Edit.Poly = L.Handler.extend({
 
     _onMarkerClick: function (e) {
 
+        var poly = this._poly;
+        var maxPoints = poly.options.maxPoints || 0;
+
         var minPoints = L.Polygon && (this._poly instanceof L.Polygon) ? 4 : 3,
             marker = e.target;
 
@@ -269,13 +272,13 @@ L.Edit.Poly = L.Handler.extend({
         }
 
         // create a ghost marker in place of the removed one
-        if (marker._prev && marker._next) {
+        if (marker._prev && marker._next && maxPoints !== 0 && poly._latlngs.length < maxPoints) {
             this._createMiddleMarker(marker._prev, marker._next);
 
-        } else if (!marker._prev) {
+        } else if (!marker._prev && maxPoints !== 0 && poly._latlngs.length < maxPoints) {
             marker._next._middleLeft = null;
 
-        } else if (!marker._next) {
+        } else if (!marker._next && maxPoints !== 0 && poly._latlngs.length < maxPoints) {
             marker._prev._middleRight = null;
         }
 
