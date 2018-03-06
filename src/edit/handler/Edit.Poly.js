@@ -70,6 +70,10 @@ L.Edit.Poly = L.Handler.extend({
     },
 
     _initMarkers: function () {
+
+        var poly = this._poly;
+        var maxPoints = poly.options.maxPoints || 0;
+
         if (!this._markerGroup) {
             this._markerGroup = new L.LayerGroup();
         }
@@ -85,6 +89,11 @@ L.Edit.Poly = L.Handler.extend({
             marker = this._createMarker(latlngs[i], i);
             marker.on('click', this._onMarkerClick, this);
             this._markers.push(marker);
+        }
+
+        var removeMiddleMarker = maxPoints !== 0 && latlngs.length > maxPoints;
+        if (removeMiddleMarker) {
+            return;
         }
 
         var markerLeft, markerRight;
