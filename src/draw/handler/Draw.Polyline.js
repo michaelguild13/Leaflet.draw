@@ -176,6 +176,9 @@ L.Draw.Polyline = L.Draw.Feature.extend({
 	// @method addVertex(): void
 	// Add a vertex to the end of the polyline
 	addVertex: function (latlng) {
+		if (this._currentLatLng) {
+			this._currentLatLng = latlng;
+		}
 		var markersLength = this._markers.length;
 		// markersLength must be greater than or equal to 2 before intersections can occur
 		if (markersLength >= 2 && !this.options.allowIntersection && this._poly.newLatLngIntersects(latlng)) {
@@ -190,11 +193,20 @@ L.Draw.Polyline = L.Draw.Feature.extend({
 
 		this._poly.addLatLng(latlng);
 
+		// this._setOriginalPoints();
+
 		if (this._poly.getLatLngs().length === 2) {
 			this._map.addLayer(this._poly);
 		}
 
 		this._vertexChanged(latlng, true);
+	},
+
+	_setOriginalPoints: function () {
+		this._poly._originalPoints = [];
+		for (var i = 0, len = this._poly._latlngs.length; i < len; i++) {
+			this._poly._originalPoints[i] = this._map.latLngToLayerPoint(this._poly._latlngs[i]);
+		}
 	},
 
 	// @method completeShape(): void
@@ -480,12 +492,12 @@ L.Draw.Polyline = L.Draw.Feature.extend({
 			if (this._markers.length === 1) {
 				labelText = {
 					text: L.drawLocal.draw.handlers.polyline.tooltip.cont,
-					subtext: distanceStr
+					subtext: ''
 				};
 			} else {
 				labelText = {
 					text: L.drawLocal.draw.handlers.polyline.tooltip.end,
-					subtext: distanceStr
+					subtext: ''
 				};
 			}
 		}

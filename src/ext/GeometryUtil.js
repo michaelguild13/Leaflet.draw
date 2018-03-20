@@ -92,7 +92,7 @@
 				} else if (area >= 4840) { //4840 square yards in 1 acre
 					areaStr = L.GeometryUtil.formattedNumber(area / 4840, precision['ac']) + ' acres';
 				} else {
-					areaStr = L.GeometryUtil.formattedNumber(area, precision['yd']) + ' yd²';
+					areaStr = L.GeometryUtil.formattedNumber(area*9, precision['ft']) + ' ft²';
 				}
 			}
 
@@ -146,7 +146,7 @@
 					if (distance > 1760) {
 						distanceStr = L.GeometryUtil.formattedNumber(distance / 1760, precision['mi']) + ' miles';
 					} else {
-						distanceStr = L.GeometryUtil.formattedNumber(distance, precision['yd']) + ' yd';
+						distanceStr = L.GeometryUtil.formattedNumber(distance*3, precision['ft']) + ' ft';
 					}
 					break;
 			}

@@ -85,6 +85,7 @@ L.Edit.PolyVerticesEdit = L.Handler.extend({
 			iconSize: new L.Point(8, 8),
 			className: 'leaflet-div-icon leaflet-editing-icon'
 		}),
+		maxPoints: 0,
 		touchIcon: new L.DivIcon({
 			iconSize: new L.Point(20, 20),
 			className: 'leaflet-div-icon leaflet-editing-icon leaflet-touch-icon'
@@ -154,7 +155,7 @@ L.Edit.PolyVerticesEdit = L.Handler.extend({
 		if (this._poly._map) {
 
 			this._map = this._poly._map; // Set map
-
+			
 			if (!this._markerGroup) {
 				this._initMarkers();
 			}
@@ -196,8 +197,16 @@ L.Edit.PolyVerticesEdit = L.Handler.extend({
 		this._markerGroup.clearLayers();
 		this._initMarkers();
 	},
-
+	saveGeometry: function () {
+		this._geometryHistory = this._geometryHistory || [];
+		this._geometryHistory.push(L.LatLngUtil.cloneLatLngs(this._poly.getLatLngs()));
+	},
+	undo: function () {
+		this._revertChange();
+		this._fireEdit();
+	},
 	_initMarkers: function () {
+		var maxPoints = poly.options.maxPoints;
 		if (!this._markerGroup) {
 			this._markerGroup = new L.LayerGroup();
 		}
@@ -208,12 +217,16 @@ L.Edit.PolyVerticesEdit = L.Handler.extend({
 
 		for (i = 0, len = latlngs.length; i < len; i++) {
 
-			marker = this._createMarker(latlngs[i], i);
+			marker = this._createMarker(latlngs[i], i, this.options.cornerIcon || this.options.icon);
 			marker.on('click', this._onMarkerClick, this);
 			marker.on('contextmenu', this._onContextMenu, this);
 			this._markers.push(marker);
 		}
 
+		var removeMiddleMarker = maxPoints > 0 && latlngs.length >= maxPoints;
+		if (removeMiddleMarker) {
+			return;
+		}
 		var markerLeft, markerRight;
 
 		for (i = 0, j = len - 1; i < len; j = i++) {
@@ -229,11 +242,11 @@ L.Edit.PolyVerticesEdit = L.Handler.extend({
 		}
 	},
 
-	_createMarker: function (latlng, index) {
+	_createMarker: function (latlng, index, icon) {
 		// Extending L.Marker in TouchEvents.js to include touch.
 		var marker = new L.Marker.Touch(latlng, {
 			draggable: true,
-			icon: this.options.icon,
+			icon: icon || this.options.icon,
 		});
 
 		marker._origLatLng = latlng;
@@ -252,8 +265,15 @@ L.Edit.PolyVerticesEdit = L.Handler.extend({
 
 		return marker;
 	},
-
+	_revertChange: function () {
+		if (!this._geometryHistory || !this._geometryHistory.length) { return; }
+		this._poly._setLatLngs(this._geometryHistory.pop());
+		this._poly.redraw();
+		this.updateMarkers();
+	},
+				 
 	_onMarkerDragStart: function () {
+		this.saveGeometry();
 		this._poly.fire('editstart');
 	},
 
@@ -348,6 +368,8 @@ L.Edit.PolyVerticesEdit = L.Handler.extend({
 	},
 
 	_onMarkerClick: function (e) {
+		var maxPoints = this.options.maxPoints || 0;
+		var lessThanMaxPoints = maxPoints > 0 && this._poly._latlngs.length < maxPoints;
 
 		var minPoints = L.Polygon && (this._poly instanceof L.Polygon) ? 4 : 3,
 			marker = e.target;
@@ -372,13 +394,13 @@ L.Edit.PolyVerticesEdit = L.Handler.extend({
 		}
 
 		// create a ghost marker in place of the removed one
-		if (marker._prev && marker._next) {
+		if (marker._prev && marker._next && lessThanMaxPoints) {
 			this._createMiddleMarker(marker._prev, marker._next);
 
-		} else if (!marker._prev) {
+		} else if (!marker._prev && lessThanMaxPoints) {
 			marker._next._middleLeft = null;
 
-		} else if (!marker._next) {
+		} else if (!marker._next && lessThanMaxPoints) {
 			marker._prev._middleRight = null;
 		}
 

@@ -66,10 +66,10 @@ L.Draw.Polygon = L.Draw.Polyline.extend({
 			text = L.drawLocal.draw.handlers.polygon.tooltip.start;
 		} else if (this._markers.length < 3) {
 			text = L.drawLocal.draw.handlers.polygon.tooltip.cont;
-			subtext = this._getMeasurementString();
+			subtext = '';
 		} else {
 			text = L.drawLocal.draw.handlers.polygon.tooltip.end;
-			subtext = this._getMeasurementString();
+			subtext = '';
 		}
 
 		return {

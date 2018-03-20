@@ -70,11 +70,14 @@ L.Draw.Marker = L.Draw.Feature.extend({
 				delete this._marker;
 			}
 
-			this._mouseMarker.off('click', this._onClick, this);
-			this._map.removeLayer(this._mouseMarker);
-			delete this._mouseMarker;
 
-			this._map.off('mousemove', this._onMouseMove, this);
+			this._map.removeLayer(this._mouseMarker);
+			this._map
+				.off('mousemove', this._onMouseMove, this)
+				.off('click', this._onClick, this)
+				.off('click', this._onTouch, this);
+			this._mouseMarker.off('click', this._onClick, this);
+			delete this._mouseMarker;
 		}
 	},
 
