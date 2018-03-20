@@ -13,7 +13,6 @@ L.Edit.Poly = L.Handler.extend({
 		if (poly._holes) {
 			this.latlngs = this.latlngs.concat(poly._holes);
 		}
-		console.log(poly);
 		this._poly = poly;
 
 		this._poly.on('revert-edited', this._updateLatLngs, this);
@@ -307,7 +306,7 @@ L.Edit.PolyVerticesEdit = L.Handler.extend({
 	_fireEdit: function () {
 		this._poly.edited = true;
 		this._poly.fire('edit');
-		this._poly._map.fire(L.Draw.Event.EDITVERTEX, {layers: this._markerGroup, poly: this._poly});
+		this._poly._map && this._poly._map.fire(L.Draw.Event.EDITVERTEX, {layers: this._markerGroup, poly: this._poly});
 	},
 
 	_onMarkerDrag: function (e) {
