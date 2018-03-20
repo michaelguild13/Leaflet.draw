@@ -48,7 +48,7 @@ describe("L.GeometryUtil", function () {
 
 		describe("imperial", function () {
 			it("returns yards or miles", function() {
-				expect(L.GeometryUtil.readableDistance(1609.3488537961)).to.eql('1760 yd');
+				expect(L.GeometryUtil.readableDistance(1609.3488537961)).to.eql('5280 ft');
 				expect(L.GeometryUtil.readableDistance(1610.3488537961)).to.eql('1.00 miles');
 			});
 
@@ -57,8 +57,8 @@ describe("L.GeometryUtil", function () {
 			});
 
 			it("switches from yards to miles on more than 1760 yards", function() {
-				expect(L.GeometryUtil.readableDistance(1608.3488537961)).to.eql('1759 yd');
-				expect(L.GeometryUtil.readableDistance(1609.3488537961)).to.eql('1760 yd');
+				expect(L.GeometryUtil.readableDistance(1608.3488537961)).to.eql('5277 ft');
+				expect(L.GeometryUtil.readableDistance(1609.3488537961)).to.eql('5280 ft');
 				expect(L.GeometryUtil.readableDistance(1610.3488537961)).to.eql('1.00 miles');
 				expect(L.GeometryUtil.readableDistance(1611.3488537961)).to.eql('1.00 miles');
 			});
@@ -69,8 +69,8 @@ describe("L.GeometryUtil", function () {
 					yd: 2
 				};
 
-				expect(L.GeometryUtil.readableDistance(1609.3488537961, false, false, false, precision)).to.eql('1760.00 yd');
-				expect(L.GeometryUtil.readableDistance(1609.2488537961, false, false, false, precision)).to.eql('1759.89 yd');
+				expect(L.GeometryUtil.readableDistance(1609.3488537961, false, false, false, precision)).to.eql('5280 ft');
+				expect(L.GeometryUtil.readableDistance(1609.2488537961, false, false, false, precision)).to.eql('5280 ft');
 				expect(L.GeometryUtil.readableDistance(1610.3488537961, false, false, false, precision)).to.eql('1 miles');
 				expect(L.GeometryUtil.readableDistance(2415.3488537961, false, false, false, precision)).to.eql('2 miles');
 				expect(L.GeometryUtil.readableDistance(3218.3488537961, false, false, false, precision)).to.eql('2 miles');

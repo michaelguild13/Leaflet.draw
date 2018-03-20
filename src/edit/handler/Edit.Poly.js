@@ -206,7 +206,7 @@ L.Edit.PolyVerticesEdit = L.Handler.extend({
 		this._fireEdit();
 	},
 	_initMarkers: function () {
-		var maxPoints = poly.options.maxPoints;
+		var maxPoints = this.options.maxPoints;
 		if (!this._markerGroup) {
 			this._markerGroup = new L.LayerGroup();
 		}
