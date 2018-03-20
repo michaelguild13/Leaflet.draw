@@ -61,6 +61,14 @@ L.Edit.Poly = L.Handler.extend({
 		this._revertChange();
 		this._fireEdit();
 	},
+
+	_fireEdit: function () {
+		this._poly.edited = true;
+		this._poly.fire('edit');
+		console.log(this._poly);
+		this._poly._map.fire(L.Draw.Event.EDITVERTEX, {layers: this._markerGroup, poly: this._poly});
+	},
+	
 	_revertChange: function () {
 		if (!this._geometryHistory || !this._geometryHistory.length) { return; }
 		this._poly._setLatLngs(this._geometryHistory.pop());
