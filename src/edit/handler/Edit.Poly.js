@@ -273,7 +273,7 @@ L.Edit.PolyVerticesEdit = L.Handler.extend({
 
 				 
 	_onMarkerDragStart: function () {
-		this.saveGeometry();
+		this._poly.saveGeometry();
 		this._poly.fire('editstart');
 	},
 
