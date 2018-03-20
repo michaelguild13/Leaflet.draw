@@ -16,6 +16,10 @@ L.Edit.Poly = L.Handler.extend({
 		this._poly = poly;
 
 		this._poly.on('revert-edited', this._updateLatLngs, this);
+		const self = this;
+		this._poly.on('editstart', function() {
+			self.saveGeometry();
+		});
 	},
 
 	// Compatibility method to normalize Poly* objects
@@ -273,7 +277,6 @@ L.Edit.PolyVerticesEdit = L.Handler.extend({
 
 				 
 	_onMarkerDragStart: function () {
-		this._poly.saveGeometry();
 		this._poly.fire('editstart');
 	},
 
