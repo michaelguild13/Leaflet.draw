@@ -1,5 +1,5 @@
 /*
- Leaflet.draw 1.0.2+c4ef742, a plugin that adds drawing and editing tools to Leaflet powered maps.
+ Leaflet.draw 1.0.2+325f273, a plugin that adds drawing and editing tools to Leaflet powered maps.
  (c) 2012-2017, Jacob Toye, Jon West, Smartrak, Leaflet
 
  https://github.com/Leaflet/Leaflet.draw
@@ -8,7 +8,7 @@
 (function (window, document, undefined) {/**
  * Leaflet.draw assumes that you have already included the Leaflet library.
  */
-L.drawVersion = "1.0.2+c4ef742";
+L.drawVersion = "1.0.2+325f273";
 /**
  * @class L.Draw
  * @aka Draw
@@ -678,7 +678,7 @@ L.Draw.Polyline = L.Draw.Feature.extend({
 
 		this._poly.addLatLng(latlng);
 
-		// this._setOriginalPoints();
+		this._setOriginalPoints();
 
 		if (this._poly.getLatLngs().length === 2) {
 			this._map.addLayer(this._poly);
@@ -1847,7 +1847,20 @@ L.Edit.Poly = L.Handler.extend({
 			handler.removeHooks();
 		});
 	},
-
+	saveGeometry: function () {
+		this._geometryHistory = this._geometryHistory || [];
+		this._geometryHistory.push(L.LatLngUtil.cloneLatLngs(this._poly.getLatLngs()));
+	},
+	undo: function () {
+		this._revertChange();
+		this._fireEdit();
+	},
+	_revertChange: function () {
+		if (!this._geometryHistory || !this._geometryHistory.length) { return; }
+		this._poly._setLatLngs(this._geometryHistory.pop());
+		this._poly.redraw();
+		this.updateMarkers();
+	},
 	// @method updateMarkers(): void
 	// Fire an update for each vertex handler
 	updateMarkers: function () {
@@ -1994,14 +2007,7 @@ L.Edit.PolyVerticesEdit = L.Handler.extend({
 		this._markerGroup.clearLayers();
 		this._initMarkers();
 	},
-	saveGeometry: function () {
-		this._geometryHistory = this._geometryHistory || [];
-		this._geometryHistory.push(L.LatLngUtil.cloneLatLngs(this._poly.getLatLngs()));
-	},
-	undo: function () {
-		this._revertChange();
-		this._fireEdit();
-	},
+
 	_initMarkers: function () {
 		var maxPoints = this.options.maxPoints;
 		if (!this._markerGroup) {
@@ -2062,12 +2068,7 @@ L.Edit.PolyVerticesEdit = L.Handler.extend({
 
 		return marker;
 	},
-	_revertChange: function () {
-		if (!this._geometryHistory || !this._geometryHistory.length) { return; }
-		this._poly._setLatLngs(this._geometryHistory.pop());
-		this._poly.redraw();
-		this.updateMarkers();
-	},
+
 				 
 	_onMarkerDragStart: function () {
 		this.saveGeometry();

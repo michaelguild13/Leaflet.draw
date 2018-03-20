@@ -49,7 +49,20 @@ L.Edit.Poly = L.Handler.extend({
 			handler.removeHooks();
 		});
 	},
-
+	saveGeometry: function () {
+		this._geometryHistory = this._geometryHistory || [];
+		this._geometryHistory.push(L.LatLngUtil.cloneLatLngs(this._poly.getLatLngs()));
+	},
+	undo: function () {
+		this._revertChange();
+		this._fireEdit();
+	},
+	_revertChange: function () {
+		if (!this._geometryHistory || !this._geometryHistory.length) { return; }
+		this._poly._setLatLngs(this._geometryHistory.pop());
+		this._poly.redraw();
+		this.updateMarkers();
+	},
 	// @method updateMarkers(): void
 	// Fire an update for each vertex handler
 	updateMarkers: function () {
@@ -196,14 +209,7 @@ L.Edit.PolyVerticesEdit = L.Handler.extend({
 		this._markerGroup.clearLayers();
 		this._initMarkers();
 	},
-	saveGeometry: function () {
-		this._geometryHistory = this._geometryHistory || [];
-		this._geometryHistory.push(L.LatLngUtil.cloneLatLngs(this._poly.getLatLngs()));
-	},
-	undo: function () {
-		this._revertChange();
-		this._fireEdit();
-	},
+
 	_initMarkers: function () {
 		var maxPoints = this.options.maxPoints;
 		if (!this._markerGroup) {
@@ -264,12 +270,7 @@ L.Edit.PolyVerticesEdit = L.Handler.extend({
 
 		return marker;
 	},
-	_revertChange: function () {
-		if (!this._geometryHistory || !this._geometryHistory.length) { return; }
-		this._poly._setLatLngs(this._geometryHistory.pop());
-		this._poly.redraw();
-		this.updateMarkers();
-	},
+
 				 
 	_onMarkerDragStart: function () {
 		this.saveGeometry();

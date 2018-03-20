@@ -193,7 +193,7 @@ L.Draw.Polyline = L.Draw.Feature.extend({
 
 		this._poly.addLatLng(latlng);
 
-		// this._setOriginalPoints();
+		this._setOriginalPoints();
 
 		if (this._poly.getLatLngs().length === 2) {
 			this._map.addLayer(this._poly);
