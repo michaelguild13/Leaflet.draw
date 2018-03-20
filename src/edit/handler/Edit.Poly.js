@@ -55,7 +55,9 @@ L.Edit.Poly = L.Handler.extend({
 	},
 	saveGeometry: function () {
 		this._geometryHistory = this._geometryHistory || [];
+		this._verticesHistory = this._verticesHistory || [];
 		this._geometryHistory.push(L.LatLngUtil.cloneLatLngs(this._poly.getLatLngs()));
+		this._verticesHistory.push(this._verticesHandlers);
 	},
 	undo: function () {
 		this._revertChange();
@@ -65,15 +67,19 @@ L.Edit.Poly = L.Handler.extend({
 	_fireEdit: function () {
 		this._poly.edited = true;
 		this._poly.fire('edit');
-		console.log(this._poly);
 		this._poly._map.fire(L.Draw.Event.EDITVERTEX, {layers: this._markerGroup, poly: this._poly});
 	},
-	
+
 	_revertChange: function () {
 		if (!this._geometryHistory || !this._geometryHistory.length) { return; }
 		this._poly._setLatLngs(this._geometryHistory.pop());
-		this._poly.redraw();
-		this.updateMarkers();
+		this._updateLatLngs({layer: this._poly});
+		const self = this;
+		this._eachVertexHandler(function (handler) {
+			self._poly._map.removeLayer(handler._markerGroup);
+		});
+		this.addHooks();
+		this._poly.redraw();	
 	},
 	// @method updateMarkers(): void
 	// Fire an update for each vertex handler
@@ -318,7 +324,6 @@ L.Edit.PolyVerticesEdit = L.Handler.extend({
 	_fireEdit: function () {
 		this._poly.edited = true;
 		this._poly.fire('edit');
-		console.log(this._poly);
 		this._poly._map.fire(L.Draw.Event.EDITVERTEX, {layers: this._markerGroup, poly: this._poly});
 	},
 
