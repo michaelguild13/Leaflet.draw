@@ -13,7 +13,7 @@ L.Edit.Poly = L.Handler.extend({
 		if (poly._holes) {
 			this.latlngs = this.latlngs.concat(poly._holes);
 		}
-
+		console.log(poly);
 		this._poly = poly;
 
 		this._poly.on('revert-edited', this._updateLatLngs, this);
