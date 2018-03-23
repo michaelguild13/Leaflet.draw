@@ -55,9 +55,7 @@ L.Edit.Poly = L.Handler.extend({
 	},
 	saveGeometry: function () {
 		this._geometryHistory = this._geometryHistory || [];
-		this._verticesHistory = this._verticesHistory || [];
 		this._geometryHistory.push(L.LatLngUtil.cloneLatLngs(this._poly.getLatLngs()));
-		this._verticesHistory.push(this._verticesHandlers);
 	},
 	undo: function () {
 		this._revertChange();
@@ -72,14 +70,18 @@ L.Edit.Poly = L.Handler.extend({
 
 	_revertChange: function () {
 		if (!this._geometryHistory || !this._geometryHistory.length) { return; }
-		this._poly._setLatLngs(this._geometryHistory.pop());
+		this.forceReset();
+	},
+	// During leaflet upgrade I had some trouble where the editable polygon wouldn't set up its points and ghost points properly
+	// This combination of things worked for me
+	forceReset: function() {
 		this._updateLatLngs({layer: this._poly});
 		const self = this;
 		this._eachVertexHandler(function (handler) {
 			self._poly._map.removeLayer(handler._markerGroup);
 		});
 		this.addHooks();
-		this._poly.redraw();	
+		this._poly.redraw();
 	},
 	// @method updateMarkers(): void
 	// Fire an update for each vertex handler
@@ -102,7 +104,6 @@ L.Edit.Poly = L.Handler.extend({
 			this.latlngs = this.latlngs.concat(e.layer._holes);
 		}
 	}
-
 });
 
 /**
@@ -323,8 +324,8 @@ L.Edit.PolyVerticesEdit = L.Handler.extend({
 
 	_fireEdit: function () {
 		this._poly.edited = true;
-		this._poly._map.fire(L.Draw.Event.EDITVERTEX, {layers: this._markerGroup, poly: this._poly});
 		this._poly.fire('edit');
+		this._poly._map.fire(L.Draw.Event.EDITVERTEX, {layers: this._markerGroup, poly: this._poly});
 	},
 
 	_onMarkerDrag: function (e) {
@@ -386,7 +387,11 @@ L.Edit.PolyVerticesEdit = L.Handler.extend({
 
 	_onMarkerClick: function (e) {
 		var maxPoints = this.options.maxPoints || 0;
-		var lessThanMaxPoints = maxPoints > 0 && this._poly._latlngs.length < maxPoints;
+		
+		var lessThanMaxPoints = true;
+		if (maxPoints !== 0) {
+			lessThanMaxPoints = maxPoints >= 0 && this._poly._latlngs && this._poly._latlngs[0].length < maxPoints;
+		}
 
 		var minPoints = L.Polygon && (this._poly instanceof L.Polygon) ? 4 : 3,
 			marker = e.target;
