@@ -345,7 +345,7 @@ L.Edit.PolyVerticesEdit = L.Handler.extend({
 			var tooltip = poly._map._editTooltip; // Access the tooltip
 
 			// If we don't allow intersections and the polygon intersects
-			if (!poly.options.poly.allowIntersection && poly.intersects()) {
+			if (!poly.options.allowIntersection && poly.intersects()) {
 
 				var originalColor = poly.options.color;
 				poly.setStyle({color: this.options.drawError.color});
