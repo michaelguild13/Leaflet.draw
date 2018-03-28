@@ -1,5 +1,5 @@
 /*
- Leaflet.draw 1.0.2+bcc575c, a plugin that adds drawing and editing tools to Leaflet powered maps.
+ Leaflet.draw 1.0.2+70da7ec, a plugin that adds drawing and editing tools to Leaflet powered maps.
  (c) 2012-2017, Jacob Toye, Jon West, Smartrak, Leaflet
 
  https://github.com/Leaflet/Leaflet.draw
@@ -8,7 +8,7 @@
 (function (window, document, undefined) {/**
  * Leaflet.draw assumes that you have already included the Leaflet library.
  */
-L.drawVersion = "1.0.2+bcc575c";
+L.drawVersion = "1.0.2+70da7ec";
 /**
  * @class L.Draw
  * @aka Draw
@@ -2130,7 +2130,7 @@ L.Edit.PolyVerticesEdit = L.Handler.extend({
 			marker._middleRight.setLatLng(this._getMiddleLatLng(marker, marker._next));
 		}
 
-		if (poly.options.poly) {
+		if (poly.options) {
 			var tooltip = poly._map._editTooltip; // Access the tooltip
 
 			// If we don't allow intersections and the polygon intersects

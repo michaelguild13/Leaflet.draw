@@ -341,7 +341,7 @@ L.Edit.PolyVerticesEdit = L.Handler.extend({
 			marker._middleRight.setLatLng(this._getMiddleLatLng(marker, marker._next));
 		}
 
-		if (poly.options.poly) {
+		if (poly.options) {
 			var tooltip = poly._map._editTooltip; // Access the tooltip
 
 			// If we don't allow intersections and the polygon intersects
