@@ -193,20 +193,11 @@ L.Draw.Polyline = L.Draw.Feature.extend({
 
 		this._poly.addLatLng(latlng);
 
-		this._setOriginalPoints();
-
 		if (this._poly.getLatLngs().length === 2) {
 			this._map.addLayer(this._poly);
 		}
 
 		this._vertexChanged(latlng, true);
-	},
-
-	_setOriginalPoints: function () {
-		this._poly._originalPoints = [];
-		for (var i = 0, len = this._poly._latlngs.length; i < len; i++) {
-			this._poly._originalPoints[i] = this._map.latLngToLayerPoint(this._poly._latlngs[i]);
-		}
 	},
 
 	// @method completeShape(): void

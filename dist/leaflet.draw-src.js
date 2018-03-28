@@ -1,5 +1,5 @@
 /*
- Leaflet.draw 1.0.2+9ead9d7, a plugin that adds drawing and editing tools to Leaflet powered maps.
+ Leaflet.draw 1.0.2+bcc575c, a plugin that adds drawing and editing tools to Leaflet powered maps.
  (c) 2012-2017, Jacob Toye, Jon West, Smartrak, Leaflet
 
  https://github.com/Leaflet/Leaflet.draw
@@ -8,7 +8,7 @@
 (function (window, document, undefined) {/**
  * Leaflet.draw assumes that you have already included the Leaflet library.
  */
-L.drawVersion = "1.0.2+9ead9d7";
+L.drawVersion = "1.0.2+bcc575c";
 /**
  * @class L.Draw
  * @aka Draw
@@ -678,20 +678,11 @@ L.Draw.Polyline = L.Draw.Feature.extend({
 
 		this._poly.addLatLng(latlng);
 
-		this._setOriginalPoints();
-
 		if (this._poly.getLatLngs().length === 2) {
 			this._map.addLayer(this._poly);
 		}
 
 		this._vertexChanged(latlng, true);
-	},
-
-	_setOriginalPoints: function () {
-		this._poly._originalPoints = [];
-		for (var i = 0, len = this._poly._latlngs.length; i < len; i++) {
-			this._poly._originalPoints[i] = this._map.latLngToLayerPoint(this._poly._latlngs[i]);
-		}
 	},
 
 	// @method completeShape(): void
