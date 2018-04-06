@@ -70,6 +70,7 @@ L.Edit.Poly = L.Handler.extend({
 
 	_revertChange: function () {
 		if (!this._geometryHistory || !this._geometryHistory.length) { return; }
+		this._poly._setLatLngs(this._geometryHistory.pop());
 		this.forceReset();
 	},
 	// During leaflet upgrade I had some trouble where the editable polygon wouldn't set up its points and ghost points properly

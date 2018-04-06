@@ -1,5 +1,5 @@
 /*
- Leaflet.draw 1.0.2+70da7ec, a plugin that adds drawing and editing tools to Leaflet powered maps.
+ Leaflet.draw 1.0.2+8a1102c, a plugin that adds drawing and editing tools to Leaflet powered maps.
  (c) 2012-2017, Jacob Toye, Jon West, Smartrak, Leaflet
 
  https://github.com/Leaflet/Leaflet.draw
@@ -8,7 +8,7 @@
 (function (window, document, undefined) {/**
  * Leaflet.draw assumes that you have already included the Leaflet library.
  */
-L.drawVersion = "1.0.2+70da7ec";
+L.drawVersion = "1.0.2+8a1102c";
 /**
  * @class L.Draw
  * @aka Draw
@@ -1859,6 +1859,7 @@ L.Edit.Poly = L.Handler.extend({
 
 	_revertChange: function () {
 		if (!this._geometryHistory || !this._geometryHistory.length) { return; }
+		this._poly._setLatLngs(this._geometryHistory.pop());
 		this.forceReset();
 	},
 	// During leaflet upgrade I had some trouble where the editable polygon wouldn't set up its points and ghost points properly
