@@ -18,9 +18,6 @@ L.Edit.Poly = L.Handler.extend({
 
 		this._poly.on('revert-edited', this._updateLatLngs, this);
 		const self = this;
-		this._poly.on('edit', function() {
-			self.saveGeometry();
-		});
 	},
 
 	// Compatibility method to normalize Poly* objects
@@ -96,7 +93,7 @@ L.Edit.Poly = L.Handler.extend({
 	_initHandlers: function () {
 		this._verticesHandlers = [];
 		for (var i = 0; i < this.latlngs.length; i++) {
-			this._verticesHandlers.push(new L.Edit.PolyVerticesEdit(this._poly, this.latlngs[i], this._poly.options.poly, this.forceReset.bind(this)));
+			this._verticesHandlers.push(new L.Edit.PolyVerticesEdit(this._poly, this.latlngs[i], this._poly.options.poly, this.forceReset.bind(this), this.saveGeometry.bind(this)));
 		}
 	},
 
@@ -132,13 +129,15 @@ L.Edit.PolyVerticesEdit = L.Handler.extend({
 	},
 
 	// @method intialize(): void
-	initialize: function (poly, latlngs, options, forcePolyResetFunction) {
+	initialize: function (poly, latlngs, options, forcePolyResetFunction, saveGeometryFunction) {
 		// if touch, switch to touch icon
 		if (L.Browser.touch) {
 			this.options.icon = this.options.touchIcon;
 		}
 		this._poly = poly;
+		this.options.maxPoints = this._poly.options.maxPoints;
 		this.forceReset = forcePolyResetFunction;
+		this.saveGeometry = saveGeometryFunction;
 		if (options && options.drawError) {
 			options.drawError = L.Util.extend({}, this.options.drawError, options.drawError);
 		}
@@ -294,6 +293,7 @@ L.Edit.PolyVerticesEdit = L.Handler.extend({
 
 				 
 	_onMarkerDragStart: function () {
+		this.saveGeometry();
 		this._poly.fire('editstart');
 	},
 
@@ -388,6 +388,7 @@ L.Edit.PolyVerticesEdit = L.Handler.extend({
 	},
 
 	_onMarkerClick: function (e) {
+		this.saveGeometry();
 		var maxPoints = this.options.maxPoints || 0;
 		
 		var lessThanMaxPoints = true;
@@ -409,26 +410,29 @@ L.Edit.PolyVerticesEdit = L.Handler.extend({
 		// update prev/next links of adjacent markers
 		this._updatePrevNext(marker._prev, marker._next);
 
-		// remove ghost markers near the removed marker
-		if (marker._middleLeft) {
-			this._markerGroup.removeLayer(marker._middleLeft);
-		}
-		if (marker._middleRight) {
-			this._markerGroup.removeLayer(marker._middleRight);
-		}
+		if (this._poly._latlngs && this._poly._latlngs[0].length === maxPoints - 1) {
+      this.forceReset();
+     } else {
+        // remove ghost markers near the removed marker
+        if (marker._middleLeft) {
+          this._markerGroup.removeLayer(marker._middleLeft);
+        }
+        if (marker._middleRight) {
+          this._markerGroup.removeLayer(marker._middleRight);
+        }
 
-		// create a ghost marker in place of the removed one
-		if (marker._prev && marker._next && lessThanMaxPoints) {
-			this._createMiddleMarker(marker._prev, marker._next);
+        // create a ghost marker in place of the removed one
+        if (marker._prev && marker._next && lessThanMaxPoints) {
+          this._createMiddleMarker(marker._prev, marker._next);
 
-		} else if (!marker._prev && lessThanMaxPoints) {
-			marker._next._middleLeft = null;
+        } else if (!marker._prev && lessThanMaxPoints) {
+          marker._next._middleLeft = null;
 
-		} else if (!marker._next && lessThanMaxPoints) {
-			marker._prev._middleRight = null;
-		}
-
-		this._fireEdit();
+        } else if (!marker._next && lessThanMaxPoints) {
+          marker._prev._middleRight = null;
+        }
+		 }
+		 this._fireEdit();
 	},
 
 	_onContextMenu: function (e) {
