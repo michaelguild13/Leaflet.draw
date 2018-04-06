@@ -507,8 +507,14 @@ L.Edit.PolyVerticesEdit = L.Handler.extend({
 			marker.off('touchmove', onDragStart, this);
 
       //  this._createMiddleMarker(marker1, marker);
-      //  this._createMiddleMarker(marker, marker2);
-			self.forceReset();
+			//  this._createMiddleMarker(marker, marker2);
+			if (self) {
+				self.forceReset();
+			}
+			else {
+				this._createMiddleMarker(marker1, marker);
+				this._createMiddleMarker(marker, marker2);
+			}
 		};
 
 		onClick = function () {
