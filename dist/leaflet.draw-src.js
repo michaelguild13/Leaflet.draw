@@ -1,5 +1,5 @@
 /*
- Leaflet.draw 1.0.2+f91b16e, a plugin that adds drawing and editing tools to Leaflet powered maps.
+ Leaflet.draw 1.0.2+433b739, a plugin that adds drawing and editing tools to Leaflet powered maps.
  (c) 2012-2017, Jacob Toye, Jon West, Smartrak, Leaflet
 
  https://github.com/Leaflet/Leaflet.draw
@@ -8,7 +8,7 @@
 (function (window, document, undefined) {/**
  * Leaflet.draw assumes that you have already included the Leaflet library.
  */
-L.drawVersion = "1.0.2+f91b16e";
+L.drawVersion = "1.0.2+433b739";
 /**
  * @class L.Draw
  * @aka Draw
@@ -1807,7 +1807,7 @@ L.Edit.Poly = L.Handler.extend({
 
 		this._poly.on('revert-edited', this._updateLatLngs, this);
 		const self = this;
-		this._poly.on('editstart', function() {
+		this._poly.on('edit', function() {
 			self.saveGeometry();
 		});
 	},
@@ -1885,7 +1885,7 @@ L.Edit.Poly = L.Handler.extend({
 	_initHandlers: function () {
 		this._verticesHandlers = [];
 		for (var i = 0; i < this.latlngs.length; i++) {
-			this._verticesHandlers.push(new L.Edit.PolyVerticesEdit(this._poly, this.latlngs[i], this._poly.options.poly));
+			this._verticesHandlers.push(new L.Edit.PolyVerticesEdit(this._poly, this.latlngs[i], this._poly.options.poly, this.forceReset.bind(this)));
 		}
 	},
 
@@ -1921,13 +1921,13 @@ L.Edit.PolyVerticesEdit = L.Handler.extend({
 	},
 
 	// @method intialize(): void
-	initialize: function (poly, latlngs, options) {
+	initialize: function (poly, latlngs, options, forcePolyResetFunction) {
 		// if touch, switch to touch icon
 		if (L.Browser.touch) {
 			this.options.icon = this.options.touchIcon;
 		}
 		this._poly = poly;
-
+		this.forceReset = forcePolyResetFunction;
 		if (options && options.drawError) {
 			options.drawError = L.Util.extend({}, this.options.drawError, options.drawError);
 		}
@@ -2295,8 +2295,9 @@ L.Edit.PolyVerticesEdit = L.Handler.extend({
 			marker.off('dragend', onDragEnd, this);
 			marker.off('touchmove', onDragStart, this);
 
-			this._createMiddleMarker(marker1, marker);
-			this._createMiddleMarker(marker, marker2);
+      //  this._createMiddleMarker(marker1, marker);
+      //  this._createMiddleMarker(marker, marker2);
+			self.forceReset();
 		};
 
 		onClick = function () {

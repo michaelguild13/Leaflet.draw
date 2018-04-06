@@ -18,7 +18,7 @@ L.Edit.Poly = L.Handler.extend({
 
 		this._poly.on('revert-edited', this._updateLatLngs, this);
 		const self = this;
-		this._poly.on('editstart', function() {
+		this._poly.on('edit', function() {
 			self.saveGeometry();
 		});
 	},
@@ -96,7 +96,7 @@ L.Edit.Poly = L.Handler.extend({
 	_initHandlers: function () {
 		this._verticesHandlers = [];
 		for (var i = 0; i < this.latlngs.length; i++) {
-			this._verticesHandlers.push(new L.Edit.PolyVerticesEdit(this._poly, this.latlngs[i], this._poly.options.poly));
+			this._verticesHandlers.push(new L.Edit.PolyVerticesEdit(this._poly, this.latlngs[i], this._poly.options.poly, this.forceReset.bind(this)));
 		}
 	},
 
@@ -132,13 +132,13 @@ L.Edit.PolyVerticesEdit = L.Handler.extend({
 	},
 
 	// @method intialize(): void
-	initialize: function (poly, latlngs, options) {
+	initialize: function (poly, latlngs, options, forcePolyResetFunction) {
 		// if touch, switch to touch icon
 		if (L.Browser.touch) {
 			this.options.icon = this.options.touchIcon;
 		}
 		this._poly = poly;
-
+		this.forceReset = forcePolyResetFunction;
 		if (options && options.drawError) {
 			options.drawError = L.Util.extend({}, this.options.drawError, options.drawError);
 		}
@@ -506,8 +506,9 @@ L.Edit.PolyVerticesEdit = L.Handler.extend({
 			marker.off('dragend', onDragEnd, this);
 			marker.off('touchmove', onDragStart, this);
 
-			this._createMiddleMarker(marker1, marker);
-			this._createMiddleMarker(marker, marker2);
+      //  this._createMiddleMarker(marker1, marker);
+      //  this._createMiddleMarker(marker, marker2);
+			self.forceReset();
 		};
 
 		onClick = function () {
