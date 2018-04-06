@@ -7,12 +7,13 @@ L.Edit = L.Edit || {};
  */
 L.Edit.Poly = L.Handler.extend({
 	// @method initialize(): void
-	initialize: function (poly) {
+	initialize: function (poly, options) {
 
 		this.latlngs = [poly._latlngs];
 		if (poly._holes) {
 			this.latlngs = this.latlngs.concat(poly._holes);
 		}
+		L.setOptions(poly, options);idd
 		this._poly = poly;
 
 		this._poly.on('revert-edited', this._updateLatLngs, this);
@@ -242,7 +243,7 @@ L.Edit.PolyVerticesEdit = L.Handler.extend({
 
 		for (i = 0, len = latlngs.length; i < len; i++) {
 
-			marker = this._createMarker(latlngs[i], i, this.options.cornerIcon || this.options.icon);
+			marker = this._createMarker(latlngs[i], i, this._poly.options.cornerIcon || this._poly.options.icon);
 			marker.on('click', this._onMarkerClick, this);
 			marker.on('contextmenu', this._onContextMenu, this);
 			this._markers.push(marker);
@@ -466,7 +467,7 @@ L.Edit.PolyVerticesEdit = L.Handler.extend({
 
 	_createMiddleMarker: function (marker1, marker2) {
 		var latlng = this._getMiddleLatLng(marker1, marker2),
-			marker = this._createMarker(latlng),
+			marker = this._createMarker(latlng, -1, this._poly.options.middleMarker || this._poly.options.icon),
 			onClick,
 			onDragStart,
 			onDragEnd;

@@ -1,5 +1,5 @@
 /*
- Leaflet.draw 1.0.2+8a1102c, a plugin that adds drawing and editing tools to Leaflet powered maps.
+ Leaflet.draw 1.0.2+f91b16e, a plugin that adds drawing and editing tools to Leaflet powered maps.
  (c) 2012-2017, Jacob Toye, Jon West, Smartrak, Leaflet
 
  https://github.com/Leaflet/Leaflet.draw
@@ -8,7 +8,7 @@
 (function (window, document, undefined) {/**
  * Leaflet.draw assumes that you have already included the Leaflet library.
  */
-L.drawVersion = "1.0.2+8a1102c";
+L.drawVersion = "1.0.2+f91b16e";
 /**
  * @class L.Draw
  * @aka Draw
@@ -1796,12 +1796,13 @@ L.Edit = L.Edit || {};
  */
 L.Edit.Poly = L.Handler.extend({
 	// @method initialize(): void
-	initialize: function (poly) {
+	initialize: function (poly, options) {
 
 		this.latlngs = [poly._latlngs];
 		if (poly._holes) {
 			this.latlngs = this.latlngs.concat(poly._holes);
 		}
+		L.setOptions(poly, options);idd
 		this._poly = poly;
 
 		this._poly.on('revert-edited', this._updateLatLngs, this);
@@ -2031,7 +2032,7 @@ L.Edit.PolyVerticesEdit = L.Handler.extend({
 
 		for (i = 0, len = latlngs.length; i < len; i++) {
 
-			marker = this._createMarker(latlngs[i], i, this.options.cornerIcon || this.options.icon);
+			marker = this._createMarker(latlngs[i], i, this._poly.options.cornerIcon || this._poly.options.icon);
 			marker.on('click', this._onMarkerClick, this);
 			marker.on('contextmenu', this._onContextMenu, this);
 			this._markers.push(marker);
@@ -2255,7 +2256,7 @@ L.Edit.PolyVerticesEdit = L.Handler.extend({
 
 	_createMiddleMarker: function (marker1, marker2) {
 		var latlng = this._getMiddleLatLng(marker1, marker2),
-			marker = this._createMarker(latlng),
+			marker = this._createMarker(latlng, -1, this._poly.options.middleMarker || this._poly.options.icon),
 			onClick,
 			onDragStart,
 			onDragEnd;
