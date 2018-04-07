@@ -359,7 +359,7 @@ L.Edit.PolyVerticesEdit = L.Handler.extend({
 				}
 				this._onMarkerClick(e); // Remove violating marker
 				// FIXME: Reset the marker to it's original position (instead of remove)
-
+				this.forceReset();
 				if (tooltip) {
 					tooltip.updateContent({
 						text: L.drawLocal.draw.handlers.polyline.error
