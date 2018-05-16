@@ -14,6 +14,7 @@ var deps = {
 			'draw/handler/Draw.Polygon.js',
 			'draw/handler/Draw.SimpleShape.js',
 			'draw/handler/Draw.Rectangle.js',
+			'draw/handler/Draw.MarkerGroup.js',
       'draw/handler/Draw.Marker.js',
       'draw/handler/Draw.CircleMarker.js',
       'draw/handler/Draw.Circle.js'
@@ -25,6 +26,7 @@ var deps = {
 	EditHandlers: {
 		src: [
 			'edit/handler/Edit.Marker.js',
+			'edit/handler/Edit.MarkerGroup.js',
 			'edit/handler/Edit.Poly.js',
 			'edit/handler/Edit.SimpleShape.js',
 			'edit/handler/Edit.Rectangle.js',

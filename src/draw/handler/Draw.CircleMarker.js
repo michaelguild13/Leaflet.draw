@@ -30,7 +30,6 @@ L.Draw.CircleMarker = L.Draw.Marker.extend({
 		L.Draw.Feature.prototype.initialize.call(this, map, options);
 	},
 
-
 	_fireCreatedEvent: function () {
 		var circleMarker = new L.CircleMarker(this._marker.getLatLng(), this.options);
 		L.Draw.Feature.prototype._fireCreatedEvent.call(this, circleMarker);

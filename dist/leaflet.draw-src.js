@@ -1,5 +1,5 @@
 /*
- Leaflet.draw 1.0.2+7c9274d, a plugin that adds drawing and editing tools to Leaflet powered maps.
+ Leaflet.draw 1.0.2+eb963d9, a plugin that adds drawing and editing tools to Leaflet powered maps.
  (c) 2012-2017, Jacob Toye, Jon West, Smartrak, Leaflet
 
  https://github.com/Leaflet/Leaflet.draw
@@ -8,7 +8,7 @@
 (function (window, document, undefined) {/**
  * Leaflet.draw assumes that you have already included the Leaflet library.
  */
-L.drawVersion = "1.0.2+7c9274d";
+L.drawVersion = "1.0.2+eb963d9";
 /**
  * @class L.Draw
  * @aka Draw
@@ -1436,6 +1436,128 @@ function _hasAncestor(el, cls) {
 
 
 
+L.Draw.MarkerGroup = L.Draw.Feature.extend({
+	statics: {
+		TYPE: 'markergroup'
+	},
+
+	options: {
+		stroke: true,
+		color: '#3388ff',
+		weight: 0,
+		opacity: 0.4,
+		pane: 'markerPane',
+		fill: true,
+		fillColor: null, //same as color by default
+		fillOpacity: 0.4,
+		clickable: true,
+		radius: 4,
+		zIndexOffset: 2000 // This should be > than the highest z-index any markers
+	},
+
+	// @method initialize(): void
+	initialize: function (map, options) {
+		// Save the type so super can fire, need to do this as cannot do this.TYPE :(
+		this.type = L.Draw.MarkerGroup.TYPE;
+
+		this._initialLabelText = "Click map to add marker."
+
+		L.Draw.Feature.prototype.initialize.call(this, map, options);
+	},
+
+	// @method addHooks(): void
+	// Add listener hooks to this handler.
+	addHooks: function () {
+		L.Draw.Feature.prototype.addHooks.call(this);
+
+		if (this._map) {
+			this._markerGroup = new L.FeatureGroup([], {pane: 'markerPane'});
+			this._map.addLayer(this._markerGroup);
+
+			this._tooltip.updateContent({text: this._initialLabelText});
+
+			// Same mouseMarker as in Draw.Polyline
+			if (!this._mouseMarker) {
+				this._mouseMarker = L.marker(this._map.getCenter(), {
+					icon: L.divIcon({
+						className: 'leaflet-mouse-marker',
+						iconAnchor: [20, 20],
+						iconSize: [40, 40]
+					}),
+					pane: 'shadowPane',
+					opacity: 0,
+					zIndexOffset: this.options.zIndexOffset / 2
+				});
+			}
+
+			this._mouseMarker
+				.on('click', this._onClick, this)
+				.addTo(this._map);
+
+			this._map.on('mousemove', this._onMouseMove, this);
+		}
+	},
+
+	// @method removeHooks(): void
+	// Remove listener hooks from this handler.
+	removeHooks: function () {
+		L.Draw.Feature.prototype.removeHooks.call(this);
+
+		if (this._map) {
+			this._map
+				.off('click', this._onClick, this)
+				.off('click', this._onTouch, this);
+			if (this._markerGroup) {
+				this._map
+					.removeLayer(this._markerGroup);
+				delete this._markerGroup;
+			}
+
+			this._map.removeLayer(this._mouseMarker);
+			this._map
+				.off('mousemove', this._onMouseMove, this)
+				.off('click', this._onClick, this)
+				.off('click', this._onTouch, this);
+			this._mouseMarker.off('click', this._onClick, this);
+			delete this._mouseMarker;
+		}
+	},
+
+	completeShape: function() {
+		if (this._markerGroup.getLayers().length < 1) {
+			return;
+		}
+		this._fireCreatedEvent.call(this);
+		this.disable();
+	},
+
+	_onMouseMove: function (e) {
+		var latlng = e.latlng;
+
+		this._tooltip.updatePosition(latlng);
+		this._mouseMarker.setLatLng(latlng);
+	},
+
+	_createMarker: function (latlng) {
+		return new L.CircleMarker(latlng, this.options);
+	},
+
+	_onClick: function () {
+		var createdMarker = this._createMarker(this._mouseMarker.getLatLng());
+		this._markerGroup.addLayer(createdMarker);
+		this.completeShape();
+	},
+
+	_fireCreatedEvent: function () {
+		var latlngs = this._markerGroup.getLayers().map( function(marker) {
+			return marker.getLatLng();
+		});
+		L.Draw.Feature.prototype._fireCreatedEvent.call(this, latlngs);
+	}
+});
+
+
+
 /**
  * @class L.Draw.Marker
  * @aka Draw.Marker
@@ -1600,7 +1722,6 @@ L.Draw.CircleMarker = L.Draw.Marker.extend({
 
 		L.Draw.Feature.prototype.initialize.call(this, map, options);
 	},
-
 
 	_fireCreatedEvent: function () {
 		var circleMarker = new L.CircleMarker(this._marker.getLatLng(), this.options);
@@ -1785,6 +1906,166 @@ L.Marker.addInitHook(function () {
 	}
 });
 
+
+
+
+L.Edit = L.Edit || {};
+
+
+/**
+ * @class L.Edit.MarkerGroup
+ * @aka Edit.MarkerGroup
+ */
+L.Edit.MarkerGroup = L.Handler.extend({
+
+	// @method initialize(): void
+	initialize: function (featureGroup, options) {
+		options = options || {};
+		this.editCircleMarkerOptions = {
+			color: 'white',
+			stroke: true,
+			weight: 1,
+			radius: 6
+		};
+		if (featureGroup.getLayers()[0]) {
+			Object.assign(options, featureGroup.getLayers()[0].options);
+		}
+
+		this._defaultText = "Click map to add marker"
+		this._hoverText = "Click to delete marker"
+		this._markerGroup = featureGroup;
+		this._tooltip = new L.Draw.Tooltip(featureGroup._map);
+		L.setOptions(this, options);
+		this.addHooks();
+	},
+
+	// @method addHooks(): void
+	// Add listener hooks to this handler
+	addHooks: function () {
+		this._toggleMarkerHighlight();
+
+		if (this._markerGroup._map) {
+			this._markers = this._markerGroup.getLayers();
+			var self = this;
+			this._markerGroup.eachLayer(function(marker) {
+				marker.on('click', self._onMarkerClick.bind(self));
+				marker.on('mouseover', self._onMarkerMouseover.bind(self));
+				marker.on('mouseout', self._onMarkerMouseout.bind(self));
+			})
+			this._tooltip.updateContent({text: this._defaultText});
+
+			// Same mouseMarker as in Draw.Polyline
+			if (!this._mouseMarker) {
+				this._mouseMarker = L.marker(this._markerGroup._map.getCenter(), {
+					icon: L.divIcon({
+						className: 'leaflet-mouse-marker',
+						iconAnchor: [20, 20],
+						iconSize: [40, 40]
+					}),
+					pane: 'shadowPane',
+					opacity: 0,
+					zIndexOffset: this.options.zIndexOffset / 2
+				});
+			}
+
+			this._mouseMarker
+				.on('click', this._onClick, this)
+				.addTo(this._markerGroup._map);
+
+				this._markerGroup._map.on('mousemove', this._onMouseMove, this);
+		}
+	},
+
+	deleteLastVertex: function () {
+		if (this._markerGroup.getLayers().length < 1) {
+			return;
+		}
+		const markerToRemove = this._markerGroup.getLayers()[this._markerGroup.getLayers().length - 1];
+		this._markerGroup.removeLayer(markerToRemove);
+		this._markers = this._markerGroup.getLayers();
+	},
+
+	// @method removeHooks(): void
+	// Remove listener hooks from this handler
+	removeHooks: function () {
+		this._toggleMarkerHighlight();
+
+		if (this._markerGroup._map) {
+			this._markerGroup._map
+				.off('click', this._onClick, this)
+				.off('click', this._onTouch, this);
+			if (this._markerGroup) {
+				var self = this;
+				this._markerGroup.eachLayer(function (layer) {
+					layer.off('click', self._onClick);
+					layer.off('click', self._onMarkerClick);
+					layer.off('mouseover', self._onMarkerMouseover.bind(self));
+					layer.off('mouseout', self._onMarkerMouseout.bind(self));
+				});
+				this._markers = [];
+			}
+
+			this._markerGroup._map.removeLayer(this._mouseMarker);
+			this._markerGroup._map
+				.off('mousemove', this._onMouseMove, this)
+				.off('click', this._onClick, this)
+				.off('click', this._onTouch, this);
+			this._mouseMarker.off('click', this._onClick, this);
+			delete this._mouseMarker;
+			this._tooltip.dispose();
+		}
+	},
+	_onMarkerMouseover: function(event) {
+		const marker = event.sourceTarget;
+		this._tooltip.updateContent({text: this._hoverText});
+		marker.setStyle({fillColor: 'white'});
+	},
+	_onMarkerMouseout: function(event) {
+		const marker = event.sourceTarget;
+		this._tooltip.updateContent({text: this._defaultText});
+		marker.setStyle({fillColor: this.options.fillColor});
+	},
+	_onMarkerClick: function(event) {
+		event.sourceTarget
+		this._tooltip.updateContent({text: this._defaultText});
+		this._markerGroup.removeLayer(event.sourceTarget);
+		event.originalEvent.preventDefault();
+		this._markerGroup.fire('edit');
+		if (this._markerGroup.getLayers().length === 0) {
+			this._markerGroup.fire('lastpointdestroyed');
+		}
+	},
+	_onClick: function () {
+		var createdMarker = this._createMarker(this._mouseMarker.getLatLng());
+		createdMarker.on('click', this._onMarkerClick, this);
+		createdMarker.on('mouseover', this._onMarkerMouseover.bind(this));
+		createdMarker.on('mouseout', this._onMarkerMouseout.bind(this));
+		this._markerGroup.addLayer(createdMarker);
+		if (this._markerGroup.getLayers().length === 1) {
+			this._markerGroup.fire('firstpoint');
+		}
+		this._markerGroup.fire('edit');
+		this._markers = this._markerGroup.getLayers();
+	},
+
+	_createMarker: function (latlng) {
+		var circleMarkerOptions = Object.assign({}, this.options, this.editCircleMarkerOptions);
+		return new L.CircleMarker(latlng, circleMarkerOptions);
+	},
+
+	_onMouseMove: function (e) {
+		var latlng = e.latlng;
+
+		this._tooltip.updatePosition(latlng);
+		this._mouseMarker.setLatLng(latlng);
+	},
+
+	_toggleMarkerHighlight: function () {
+		if (this._markerGroup) {
+			this._markerGroup.setStyle(this.editCircleMarkerOptions);
+		}
+	},
+});
 
 
 L.Edit = L.Edit || {};
