@@ -445,6 +445,8 @@ L.Draw.Polyline = L.Draw.Feature.extend({
 	},
 
 	_vertexChanged: function (latlng, added) {
+		this._map.fire('draw:drawvertex', { layers: this._markerGroup });
+		
 		this._updateFinishHandler();
 
 		this._updateRunningMeasure(latlng, added);
