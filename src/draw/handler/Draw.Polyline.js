@@ -164,26 +164,6 @@ L.Draw.Polyline = L.Draw.Feature.extend({
 			this._map.addLayer(this._poly);
 		}
 
-		var self = this;
-
-		function mapper(el) {
-			return {
-				getLatLng: function () {
-					return el;
-				},
-			};
-		}
-
-		var layerGroup = {
-			layers: {
-				getLayers: function () {
-					return self._poly.getLatLngs().map(mapper);
-				},
-			},
-		};
-
-		this._map.fire('draw:drawvertex', layerGroup);
-
 		this._vertexChanged(latlng, true);
 	},
 
@@ -272,6 +252,8 @@ L.Draw.Polyline = L.Draw.Feature.extend({
 	},
 
 	_vertexChanged: function (latlng, added) {
+		this._map.fire('draw:drawvertex', { layers: this._markerGroup });
+		
 		this._updateFinishHandler();
 
 		this._updateRunningMeasure(latlng, added);
